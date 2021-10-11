@@ -7,9 +7,9 @@ cmsrel CMSSW_12_1_0_pre2
 cd CMSSW_12_1_0_pre2/src/
 cmsenv
 voms-proxy-init -voms cms -valid 192:00
-git clone https://github.com/jmejiagu/MiniAODBphysicsUltraLegacyRun2.git myAnalyzers/JPsiKsPAT
+git clone git@github.com:jmejiagu/SoftandFrame_MiniAOD.git myAnalyzers/JPsiKsPAT
 cd myAnalyzers/JPsiKsPAT/
-git checkout master
+git checkout main
 cd ../..
 scram b
 
@@ -24,4 +24,4 @@ cmsRun PsikaonRootupler.py
 cmsRun Psikaon_MC_Rootupler
 ```
 
-This example is for Bu hadron, both data and MC config files. In test directory you can find other examples to run Bs and Bd hadrons too.
+This example is for Bu hadron, both data and MC config files. In test directory you can find other examples to run JpsiTrkTrk example too.
