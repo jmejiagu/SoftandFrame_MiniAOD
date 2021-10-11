@@ -16,10 +16,10 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 
 ## Message Logger and Event range
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 2000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
 #process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource",
@@ -27,21 +27,21 @@ process.source = cms.Source("PoolSource",
 
         #MiniAOD UltraLegacy2018
         '/store/data/Run2018A/Charmonium/MINIAOD/12Nov2019_UL2018_rsb-v1/10000/08F41CB9-8F1F-D44F-A5FC-D17E38328C4C.root',
-
+        
         #MiniAOD UltraLegacy2017
         #'/store/data/Run2017F/Charmonium/MINIAOD/09Aug2019_UL2017-v1/20000/00BACB48-9B0F-8F48-A68B-2F08A3E9E681.root',
-
+        
         #MiniAOD UltraLegacy2016
         #'/store/data/Run2016G/Charmonium/MINIAOD/21Feb2020_UL2016-v1/30000/00013A18-278D-5B48-9BEF-1083A8F5C9D7.root',
-        
+             
  )
 )
 
 process.triggerSelection = cms.EDFilter("TriggerResultsFilter",
                                         triggerConditions = cms.vstring('HLT_Dimuon20_Jpsi_Barrel_Seagulls_v*',
                                                                         'HLT_Dimuon25_Jpsi_v*',
-                                                                        'HLT_DoubleMu4_JpsiTrk_Displaced_v*',
                                                                         'HLT_DoubleMu4_JpsiTrkTrk_Displaced_v*',
+                                                                        'HLT_DoubleMu4_JpsiTrk_Displaced_v*',
                                                                         'HLT_DoubleMu4_Jpsi_Displaced_v*'                                   
                                                                        ),
                                         hltResults = cms.InputTag( "TriggerResults", "", "HLT" ),
@@ -49,21 +49,40 @@ process.triggerSelection = cms.EDFilter("TriggerResultsFilter",
                                         throw = cms.bool(False)
                                         )
 
-process.load("myAnalyzers.JPsiKsPAT.PsikaonRootupler_cfi")
-#process.rootuple.dimuons = cms.InputTag('slimmedMuons') 
+process.rootuple = cms.EDAnalyzer('JPsiTrkTrk',
+                          dimuons = cms.InputTag("slimmedMuons"),
+                          Trak = cms.InputTag("packedPFCandidates"),
+                          #Trak_lowpt = cms.InputTag("lostTracks"),
+                          GenParticles = cms.InputTag("genParticles"),
+                          packedGenParticles = cms.InputTag("packedGenParticles"),
+                          primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                          bslabel = cms.InputTag("offlineBeamSpot"),
+                          TriggerResults = cms.InputTag("TriggerResults", "", "HLT"),
+                          OnlyBest = cms.bool(False),
+                          isMC = cms.bool(False),
+                          OnlyGen = cms.bool(False),
+                          #Trkmass           = cms.double(0.493677),
+                          Trkmass           = cms.double(0.13957018),
+                          TrkTrkMasscut     = cms.vdouble(0.350,4.0),        
+                          BarebMasscut      = cms.vdouble(3.2,4.4),
+                          bMasscut          = cms.vdouble(3.3,4.0),        
+                          )
 
 process.TFileService = cms.Service("TFileService",
-       fileName = cms.string('Rootuple_Bplus_2018UL-MiniAOD.root'),
+        fileName = cms.string('Rootuple_Psi2StoJpsipipi_2018UL_MiniAOD.root'),
+        #fileName = cms.string('Rootuple_Psi2StoJpsipipi_MCRelVal_MiniAOD.root'),                                  
 )
+
 
 process.mySequence = cms.Sequence(
                                    process.triggerSelection *
                                    process.rootuple
 				   )
-
 #process.p = cms.Path(process.mySequence)
 
-process.p = cms.Path(process.triggerSelection*process.rootuple)
-#process.p = cms.Path(process.rootuple)
+#process.p = cms.Path(process.triggerSelection*process.rootuple)
+process.p = cms.Path(process.rootuple)
+
+
 
 

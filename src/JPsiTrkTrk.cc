@@ -1,11 +1,11 @@
 // -*- C++ -*-
 //
-// Package:    JPsiphi
-// Class:      JPsiphi
+// Package:    JPsiTrkTrk
+// Class:      JPsiTrkTrk
 // 
 //=================================================
 // original author:  Jhovanny Andres Mejia        |
-//         created:  November 2020                |
+//         created:  October 2021                |
 //         <jhovanny.andres.mejia.guisao@cern.ch> | 
 //=================================================
 
@@ -13,7 +13,7 @@
 #include <memory>
 
 // user include files
-#include "myAnalyzers/JPsiKsPAT/src/JPsiphi.h"
+#include "myAnalyzers/JPsiKsPAT/src/JPsiTrkTrk.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -79,7 +79,7 @@
 //
 // constructors and destructor
 //
-JPsiphi::JPsiphi(const edm::ParameterSet& iConfig)
+JPsiTrkTrk::JPsiTrkTrk(const edm::ParameterSet& iConfig)
   :
   dimuon_Label(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("dimuons"))),
   trakCollection_label(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("Trak"))),
@@ -92,6 +92,10 @@ JPsiphi::JPsiphi(const edm::ParameterSet& iConfig)
   OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
   isMC_(iConfig.getParameter<bool>("isMC")),
   OnlyGen_(iConfig.getParameter<bool>("OnlyGen")),
+  Trkmass_(iConfig.getParameter<double>("Trkmass")),
+  TrkTrkMasscut_(iConfig.getParameter<std::vector<double> >("TrkTrkMasscut")),
+  BarebMasscut_(iConfig.getParameter<std::vector<double> >("BarebMasscut")),
+  bMasscut_(iConfig.getParameter<std::vector<double> >("bMasscut")),
 
   tree_(0), 
 
@@ -150,14 +154,14 @@ JPsiphi::JPsiphi(const edm::ParameterSet& iConfig)
 }
 
 
-JPsiphi::~JPsiphi()
+JPsiTrkTrk::~JPsiTrkTrk()
 {
 
 }
 
 
 // ------------ method called to for each event  ------------
-void JPsiphi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void JPsiTrkTrk::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {  
   using std::vector;
   using namespace edm;
@@ -460,19 +464,26 @@ void JPsiphi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		   reco::TransientTrack pion1TT((*theB).build(iTrack1->pseudoTrack()));
 		   reco::TransientTrack pion2TT((*theB).build(iTrack2->pseudoTrack()));
 
-		   ParticleMass kaon_mass = 0.493677;
-		   float kaon_sigma = kaon_mass*1.e-6;
+		   //ParticleMass kaon_mass = 0.493677;
+		   //float kaon_sigma = kaon_mass*1.e-6;
+		   //ParticleMass pion_mass = 0.13957018;
+		   ParticleMass pion_mass = Trkmass_;
+		   float pion_sigma = pion_mass*1.e-6;
 
 		   // ***************************
 		   // pipi invariant mass (before kinematic vertex fit)
 		   // ***************************
 		   TLorentzVector pion14V,pion24V,pipi4V, Jpsi4V; 
-		   pion14V.SetXYZM(iTrack1->px(),iTrack1->py(),iTrack1->pz(),kaon_mass);
-		   pion24V.SetXYZM(iTrack2->px(),iTrack2->py(),iTrack2->pz(),kaon_mass);
+		   pion14V.SetXYZM(iTrack1->px(),iTrack1->py(),iTrack1->pz(),pion_mass);
+		   pion24V.SetXYZM(iTrack2->px(),iTrack2->py(),iTrack2->pz(),pion_mass);
 
 		   pipi4V=pion14V+pion24V;
-		   if(pipi4V.M()<0.970 || pipi4V.M()>1.070) continue;
-	       
+		   // in the case of the BstoJpsiphi It could be:
+		   //if(pipi4V.M()<0.970 || pipi4V.M()>1.070) continue;
+		   // in the case of the Jpsipipi It could be (0.450)
+		   //if(pipi4V.M()<0.350) continue;
+		   if(pipi4V.M()<TrkTrkMasscut_[0] || pipi4V.M()>TrkTrkMasscut_[1]) continue;
+
 		   //initial chi2 and ndf before kinematic fits.
 		   float chi = 0.;
 		   float ndf = 0.;
@@ -483,13 +494,17 @@ void JPsiphi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 		   Jpsi4V.SetXYZM(psi_vFit_noMC->currentState().globalMomentum().x(),psi_vFit_noMC->currentState().globalMomentum().y(),psi_vFit_noMC->currentState().globalMomentum().z(),psi_vFit_noMC->currentState().mass());
 
-		   if ( (pipi4V + Jpsi4V).M()<4.4 || (pipi4V + Jpsi4V).M()>6.3 ) continue;
+		   // in the case of the BstoJpsiphi It could be:
+		   //if ( (pipi4V + Jpsi4V).M()<4.4 || (pipi4V + Jpsi4V).M()>6.3 ) continue;
+		   // in the case of the Jpsipipi It could be
+		   //if ( (pipi4V + Jpsi4V).M()<3.2 || (pipi4V + Jpsi4V).M()>4.4 ) continue;
+		   if ( (pipi4V + Jpsi4V).M()<BarebMasscut_[0] || (pipi4V + Jpsi4V).M()>BarebMasscut_[1] ) continue;
 
 		   vector<RefCountedKinematicParticle> vFitMCParticles;
 		   vFitMCParticles.push_back(pFactory.particle(muon1TT,muon_mass,chi,ndf,muon_sigma));
 		   vFitMCParticles.push_back(pFactory.particle(muon2TT,muon_mass,chi,ndf,muon_sigma));
-		   vFitMCParticles.push_back(pFactory.particle(pion1TT,kaon_mass,chi,ndf,kaon_sigma));
-		   vFitMCParticles.push_back(pFactory.particle(pion2TT,kaon_mass,chi,ndf,kaon_sigma));
+		   vFitMCParticles.push_back(pFactory.particle(pion1TT,pion_mass,chi,ndf,pion_sigma));
+		   vFitMCParticles.push_back(pFactory.particle(pion2TT,pion_mass,chi,ndf,pion_sigma));
 
                    // JPsi mass constraint is applied in the final Bs fit,                                                               
                    MultiTrackKinematicConstraint *  j_psi_c = new  TwoTrackMassKinematicConstraint(psi_mass);
@@ -508,8 +523,12 @@ void JPsiphi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		     continue;
 		   }
 
-		   if(bCandMC->currentState().mass()<5.0 || bCandMC->currentState().mass()>6.0) continue;
-		   
+		   // in the case of the BstoJpsiphi It could be:
+		   //if(bCandMC->currentState().mass()<5.0 || bCandMC->currentState().mass()>6.0) continue;
+		   // in the case of the Jpsipipi It could be
+		   //if(bCandMC->currentState().mass()<3.3 || bCandMC->currentState().mass()>4.0) continue;
+		   if(bCandMC->currentState().mass()<bMasscut_[0] || bCandMC->currentState().mass()>bMasscut_[1]) continue;
+ 
 		   if(bDecayVertexMC->chiSquared()<0 || bDecayVertexMC->chiSquared()>50 ) 
 		     {
 		       //std::cout << " continue from negative chi2 = " << bDecayVertexMC->chiSquared() << endl;
@@ -731,14 +750,14 @@ void JPsiphi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
  
 }
 
-bool JPsiphi::IsTheSame(const pat::GenericParticle& tk, const pat::Muon& mu){
+bool JPsiTrkTrk::IsTheSame(const pat::GenericParticle& tk, const pat::Muon& mu){
   double DeltaEta = fabs(mu.eta()-tk.eta());
   double DeltaP   = fabs(mu.p()-tk.p());
   if (DeltaEta < 0.02 && DeltaP < 0.02) return true;
   return false;
 }
 
-bool JPsiphi::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle) {
+bool JPsiTrkTrk::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle) {
     if (ancestor == particle ) return true;
     for (size_t i=0; i< particle->numberOfMothers(); i++) {
         if (isAncestor(ancestor,particle->mother(i))) return true;
@@ -746,7 +765,7 @@ bool JPsiphi::isAncestor(const reco::Candidate* ancestor, const reco::Candidate 
     return false;
 }
 
-double JPsiphi::GetLifetime(TLorentzVector b_p4, TVector3 production_vtx, TVector3 decay_vtx) {
+double JPsiTrkTrk::GetLifetime(TLorentzVector b_p4, TVector3 production_vtx, TVector3 decay_vtx) {
    TVector3 pv_dv = decay_vtx - production_vtx;
    TVector3 b_p3  = b_p4.Vect();
    pv_dv.SetZ(0.);
@@ -758,7 +777,7 @@ double JPsiphi::GetLifetime(TLorentzVector b_p4, TVector3 production_vtx, TVecto
 // ------------ method called once each job just before starting event loop  ------------
 
 void 
-JPsiphi::beginJob()
+JPsiTrkTrk::beginJob()
 {
   std::cout << "Beginning analyzer job with value of isMC_ = " << isMC_ << std::endl;
 
@@ -898,11 +917,11 @@ JPsiphi::beginJob()
 
 
 // ------------ method called once each job just after ending the event loop  ------------
-void JPsiphi::endJob() {
+void JPsiTrkTrk::endJob() {
   tree_->GetDirectory()->cd();
   tree_->Write();
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(JPsiphi);
+DEFINE_FWK_MODULE(JPsiTrkTrk);
 

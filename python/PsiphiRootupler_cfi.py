@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-rootuple = cms.EDAnalyzer('JPsiphi',
+rootuple = cms.EDAnalyzer('JPsiTrkTrk',
                           dimuons = cms.InputTag("slimmedMuons"),
                           Trak = cms.InputTag("packedPFCandidates"),
                           #Trak_lowpt = cms.InputTag("lostTracks"),

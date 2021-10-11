@@ -1,5 +1,5 @@
-#ifndef _JPsiphi_h
-#define _JPsiphi_h
+#ifndef _JPsiTrkTrk_h
+#define _JPsiTrkTrk_h
 
 // system include files
 #include <memory>
@@ -75,10 +75,10 @@
 // class decleration
 //
 
-class JPsiphi : public edm::EDAnalyzer {
+class JPsiTrkTrk : public edm::EDAnalyzer {
 public:
-  explicit JPsiphi(const edm::ParameterSet&);
-  ~JPsiphi();
+  explicit JPsiTrkTrk(const edm::ParameterSet&);
+  ~JPsiTrkTrk();
   void fillPsi(const reco::Candidate& genpsi);
   void fillV0(const reco::Candidate& genv0);
   int const getMuCat(reco::Muon const& muon) const;
@@ -108,6 +108,11 @@ private:
   bool OnlyBest_;
   bool isMC_;
   bool OnlyGen_;
+  double Trkmass_;
+  std::vector<double> TrkTrkMasscut_;
+  std::vector<double> BarebMasscut_;
+  std::vector<double> bMasscut_;
+
   // bool doMC_;
   //std::string genParticles_;
 
