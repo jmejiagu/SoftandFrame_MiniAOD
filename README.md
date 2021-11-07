@@ -25,4 +25,5 @@ cmsRun PsikaonRootupler.py
 cmsRun Psikaon_MC_Rootupler
 ```
 
-This example is for Bu hadron, both data and MC config files. In test directory you can find other examples to run JpsiTrkTrk example too.
+This example is for JpsiTrack reconstruction. In particular, the config file refers to Bu hadron, both data and MC config files. 
+In test directory you can find examples to run JpsiTrkTrk, JPsiV0, and others.

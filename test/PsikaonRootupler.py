@@ -16,10 +16,10 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 
 ## Message Logger and Event range
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 2000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(2000))
 #process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource",
@@ -49,8 +49,25 @@ process.triggerSelection = cms.EDFilter("TriggerResultsFilter",
                                         throw = cms.bool(False)
                                         )
 
-process.load("myAnalyzers.JPsiKsPAT.PsikaonRootupler_cfi")
-#process.rootuple.dimuons = cms.InputTag('slimmedMuons') 
+#process.load("myAnalyzers.JPsiKsPAT.PsikaonRootupler_cfi")
+#process.rootuple.dimuons = cms.InputTag('slimmedMuons')
+process.rootuple = cms.EDAnalyzer('JPsiKaon',
+                          dimuons = cms.InputTag("slimmedMuons"),
+                          Trak = cms.InputTag("packedPFCandidates"),
+                          #Trak_lowpt = cms.InputTag("lostTracks"),
+                          GenParticles = cms.InputTag("genParticles"),
+                          packedGenParticles = cms.InputTag("packedGenParticles"),
+                          primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                          bslabel = cms.InputTag("offlineBeamSpot"),
+                          TriggerResults = cms.InputTag("TriggerResults", "", "HLT"),
+                          OnlyBest = cms.bool(False),
+                          isMC = cms.bool(False),
+                          OnlyGen = cms.bool(False),
+                          Trkmass           = cms.double(0.493677),
+                          #Trkmass           = cms.double(0.13957018),
+                          BarebMasscut      = cms.vdouble(4.2,6.8),
+                          bMasscut          = cms.vdouble(5.0,6.0),        
+                          )
 
 process.TFileService = cms.Service("TFileService",
        fileName = cms.string('Rootuple_Bplus_2018UL-MiniAOD.root'),

@@ -85,6 +85,9 @@ JPsiKaon::JPsiKaon(const edm::ParameterSet& iConfig)
   OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
   isMC_(iConfig.getParameter<bool>("isMC")),
   OnlyGen_(iConfig.getParameter<bool>("OnlyGen")),
+  Trkmass_(iConfig.getParameter<double>("Trkmass")),
+  BarebMasscut_(iConfig.getParameter<std::vector<double> >("BarebMasscut")),
+  bMasscut_(iConfig.getParameter<std::vector<double> >("bMasscut")),
   
   tree_(0), 
 
@@ -406,7 +409,7 @@ void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      continue;
 	    }
 	  
-	  //Now that we have a J/psi candidate, we look for K^+ candidates
+	  //Now that we have a J/psi candidate, we look for Trk candidates
 	  
 	  for(View<pat::PackedCandidate>::const_iterator iTrack1 = thePATTrackHandle->begin(); 
 		   iTrack1 != thePATTrackHandle->end(); ++iTrack1 ) 
@@ -414,7 +417,7 @@ void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		     //quality cuts
 		   if(iTrack1->charge()==0) continue;
 		   if(fabs(iTrack1->pdgId())!=211) continue;
-		   if(iTrack1->pt()<1.3) continue;
+		   if(iTrack1->pt()<1.2) continue;
 		   if(!(iTrack1->trackHighPurity())) continue;
 		   if(iTrack1->numberOfPixelHits()<1)continue;
 		   if(iTrack1->numberOfHits()<5)continue;
@@ -423,29 +426,30 @@ void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		    		 		   
 		   reco::TransientTrack kaonTT((*theB).build(iTrack1->pseudoTrack()));
 
-		   ParticleMass kaon_mass = 0.493677;
-		   float kaon_sigma = kaon_mass*1.e-6;
+		   //ParticleMass kaon_mass = 0.493677;
+		   //float kaon_sigma = kaon_mass*1.e-6;
+		   //ParticleMass pion_mass = 0.13957018;
+		   ParticleMass pion_mass = Trkmass_;
+		   float pion_sigma = pion_mass*1.e-6;
 
 		   float chi = 0.;
 		   float ndf = 0.;		 
 
 		   // ***************************
-		   // JpsiKaon invariant mass (before kinematic vertex fit)
+		   // JpsiTrk invariant mass (before kinematic vertex fit)
 		   // ***************************
 		   TLorentzVector kaon14V, Jpsi4V; 
-		   kaon14V.SetXYZM(iTrack1->px(),iTrack1->py(),iTrack1->pz(),kaon_mass);
-		   
+		   kaon14V.SetXYZM(iTrack1->px(),iTrack1->py(),iTrack1->pz(),pion_mass);		   
 		   Jpsi4V.SetXYZM(psi_vFit_noMC->currentState().globalMomentum().x(),psi_vFit_noMC->currentState().globalMomentum().y(),psi_vFit_noMC->currentState().globalMomentum().z(),psi_vFit_noMC->currentState().mass());
-
-		   if ( (kaon14V + Jpsi4V).M()<4.2 || (kaon14V + Jpsi4V).M()>6.8 ) continue;
+		   //if ( (kaon14V + Jpsi4V).M()<4.2 || (kaon14V + Jpsi4V).M()>6.8 ) continue;
+		   if ( (kaon14V + Jpsi4V).M()<BarebMasscut_[0] || (kaon14V + Jpsi4V).M()>BarebMasscut_[1] ) continue;
 	   
 		   //Now we are ready to combine!
 		   // JPsi mass constraint is applied in the final Bplus fit,
-
 		   vector<RefCountedKinematicParticle> vFitMCParticles;
 		   vFitMCParticles.push_back(pFactory.particle(muon1TT,muon_mass,chi,ndf,muon_sigma));
 		   vFitMCParticles.push_back(pFactory.particle(muon2TT,muon_mass,chi,ndf,muon_sigma));
-		   vFitMCParticles.push_back(pFactory.particle(kaonTT,kaon_mass ,chi,ndf,kaon_sigma));
+		   vFitMCParticles.push_back(pFactory.particle(kaonTT,pion_mass ,chi,ndf,pion_sigma));
 		   		  
 		   MultiTrackKinematicConstraint *  j_psi_c = new  TwoTrackMassKinematicConstraint(psi_mass);
 		   KinematicConstrainedVertexFitter kcvFitter;
@@ -463,21 +467,15 @@ void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		      continue;
 		    }
 		    
-		    if ( (bCandMC->currentState().mass() < 5.0) || (bCandMC->currentState().mass() > 6.0) ) {
-		      continue;
-		    }
-		    
-		    if ( bDecayVertexMC->chiSquared()<0 || bDecayVertexMC->chiSquared()>50) {
-		      //if ( bDecayVertexMC->chiSquared()<0 ) cout << " continue from negative chi2 = " << bDecayVertexMC->chiSquared() << endl;
-		      continue;
-		    }
+		    //if( (bCandMC->currentState().mass() < 5.0) || (bCandMC->currentState().mass() > 6.0) ) { continue; }
+		    if(bCandMC->currentState().mass()<bMasscut_[0] || bCandMC->currentState().mass()>bMasscut_[1]) continue;
 		    
 		    double B_Prob_tmp  = TMath::Prob(bDecayVertexMC->chiSquared(),(int)bDecayVertexMC->degreesOfFreedom());
 		    if(B_Prob_tmp<0.01)
 		      {
-		      continue;
+			continue;
 		      }
-		    		    
+		    
 		    // get children from final B fit
 
 		    vertexFitTree->movePointerToTheFirstChild();
