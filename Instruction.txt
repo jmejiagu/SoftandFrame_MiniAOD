@@ -1,0 +1,47 @@
+
+Intructions to run the examples.
+
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+export SCRAM_ARCH=slc7_amd64_gcc900
+cmsrel CMSSW_12_1_0_pre2
+cd CMSSW_12_1_0_pre2/src/
+cmsenv
+voms-proxy-init -voms cms -valid 192:00
+git clone git@github.com:jmejiagu/SoftandFrame_MiniAOD.git myAnalyzers/JPsiKsPAT
+cd myAnalyzers/JPsiKsPAT/
+git checkout main
+cd ../..
+scram b
+
+Run: (use your favorite input sample. You will see examples in the confi files).
+
+There are several examples here. let's try to explain some of them.
+
+JPsiTrk.cc
+This is to reconstruct Jpsi+Trk.
+In the configuration file, you will set the B-mass window and the Track-mass.
+For example, in the config file "PsikaonRootupler.py" You will see it is for "B+->JpsiK" decay channel. 
+It, clearly, is easy to move to "Bc->Jpsipi"
+
+JPsiTrkTrk.cc
+This is to reconstruct Jpsi+2Trk.
+In the configuration file, you will set the B-mass window and the Track-mass for both tracks.
+For example, in the config file "PsiphiRootupler.py" ("Psiphi_MC_Rootupler.py") You will see it is for "Bs->Jpsiphi" decay channel. 
+While the config file "Psitrktrk_Rootupler.py" is for "psi(2S)>Jpsipipi" and, with the appropriate mass window, you could see "X(3872)>Jpsipipi", too.
+
+JPsiV0.cc
+This is to reconstruct Jpsi+V0.
+"V0" means for long live particles, Ks0 or  Lambda.
+In the configuration file, you will set the B-mass window and the Track-mass for both tracks.
+For example, in the config file "PsiV0_Bd_Rootupler.py" You will see it is for "Bd->JpsiKs0" decay channel, where Ks0 decays as Ks0->pipi. 
+It, clearly, is easy to move to "/\b->Jpsi/\".
+
+chicRootupler.cc and chibRootupler.cc
+Those are to reconstruct Jpsi+Gamma and Upsilon+Gamma, respectively.
+The associated configuration files are: run-chic-miniaod.py and run-chib-miniaod.py.
+
+
+Please, do not hesitate to contact me if you have comments, questions, or suggestions.
+hypernews: hn-cms-bphysics@cern.ch
+https://hypernews.cern.ch/HyperNews/CMS/get/bphysics.html?
+CERN email: jhovanny.andres.mejia.guisao@cern.ch
