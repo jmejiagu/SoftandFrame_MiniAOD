@@ -27,3 +27,12 @@ cmsRun Psikaon_MC_Rootupler
 
 This example is for JpsiTrack reconstruction. In particular, the config file refers to Bu hadron, both data and MC config files. 
 In test directory you can find examples to run JpsiTrkTrk, JPsiV0, and others.
+
+Run Chi(c,b)
+
+```
+cd myAnalyzers/JPsiKsPAT/test/
+cmsRun run-chic-miniaod.py
+cmsRun run-chib-miniaod.py
+```
+
