@@ -19,8 +19,8 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(2000))
-#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(2000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
@@ -51,7 +51,7 @@ process.triggerSelection = cms.EDFilter("TriggerResultsFilter",
 
 #process.load("myAnalyzers.JPsiKsPAT.PsikaonRootupler_cfi")
 #process.rootuple.dimuons = cms.InputTag('slimmedMuons')
-process.rootuple = cms.EDAnalyzer('JPsiKaon',
+process.rootuple = cms.EDAnalyzer('JPsiTrk',
                           dimuons = cms.InputTag("slimmedMuons"),
                           Trak = cms.InputTag("packedPFCandidates"),
                           #Trak_lowpt = cms.InputTag("lostTracks"),

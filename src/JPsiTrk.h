@@ -1,5 +1,5 @@
-#ifndef _JPsiKaon_h
-#define _JPsiKaon_h
+#ifndef _JPsiTrk_h
+#define _JPsiTrk_h
 
 // system include files
 #include <memory>
@@ -72,10 +72,10 @@
 // class decleration
 //
 
-class JPsiKaon : public edm::EDAnalyzer {
+class JPsiTrk : public edm::EDAnalyzer {
 public:
-  explicit JPsiKaon(const edm::ParameterSet&);
-  ~JPsiKaon();
+  explicit JPsiTrk(const edm::ParameterSet&);
+  ~JPsiTrk();
   void fillPsi(const reco::Candidate& genpsi);
   void fillV0(const reco::Candidate& genv0);
   //int const getMuCat(reco::Muon const& muon) const;

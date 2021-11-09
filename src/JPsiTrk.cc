@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //
-// Package:    JPsiKaon
-// Class:      JPsiKaon
+// Package:    JPsiTrk
+// Class:      JPsiTrk
 // 
 
 //=================================================
@@ -15,7 +15,7 @@
 
 
 // user include files
-#include "myAnalyzers/JPsiKsPAT/src/JPsiKaon.h"
+#include "myAnalyzers/JPsiKsPAT/src/JPsiTrk.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -72,7 +72,7 @@
 // constructors and destructor
 //
 
-JPsiKaon::JPsiKaon(const edm::ParameterSet& iConfig)
+JPsiTrk::JPsiTrk(const edm::ParameterSet& iConfig)
   :
   dimuon_Label(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("dimuons"))),
   trakCollection_label(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("Trak"))),
@@ -134,14 +134,14 @@ JPsiKaon::JPsiKaon(const edm::ParameterSet& iConfig)
    //now do what ever initialization is needed
 }
 
-JPsiKaon::~JPsiKaon()
+JPsiTrk::~JPsiTrk()
 {
 
 }
 
 
 // ------------ method called to for each event  ------------
-void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void JPsiTrk::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   using std::vector;
   using namespace edm;
@@ -259,7 +259,7 @@ void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       gen_bc_vtx.SetXYZ(0.,0.,0.);
       gen_jpsi_vtx.SetXYZ(0.,0.,0.);
       gen_bc_ct = -9999.;
-      std::cout << "Does not found the given decay " << run << "," << event << " foundit=" << foundit << std::endl; // sanity check
+      //std::cout << "Does not found the given decay " << run << "," << event << " foundit=" << foundit << std::endl; // sanity check
     }
   }
  
@@ -661,14 +661,14 @@ void JPsiKaon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
 }
 
-bool JPsiKaon::IsTheSame(const pat::GenericParticle& tk, const pat::Muon& mu){
+bool JPsiTrk::IsTheSame(const pat::GenericParticle& tk, const pat::Muon& mu){
   double DeltaEta = fabs(mu.eta()-tk.eta());
   double DeltaP   = fabs(mu.p()-tk.p());
   if (DeltaEta < 0.02 && DeltaP < 0.02) return true;
   return false;
 }
 
-bool JPsiKaon::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle) {
+bool JPsiTrk::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle) {
     if (ancestor == particle ) return true;
     for (size_t i=0; i< particle->numberOfMothers(); i++) {
         if (isAncestor(ancestor,particle->mother(i))) return true;
@@ -676,7 +676,7 @@ bool JPsiKaon::isAncestor(const reco::Candidate* ancestor, const reco::Candidate
     return false;
 }
 
-double JPsiKaon::GetLifetime(TLorentzVector b_p4, TVector3 production_vtx, TVector3 decay_vtx) {
+double JPsiTrk::GetLifetime(TLorentzVector b_p4, TVector3 production_vtx, TVector3 decay_vtx) {
    TVector3 pv_dv = decay_vtx - production_vtx;
    TVector3 b_p3  = b_p4.Vect();
    pv_dv.SetZ(0.);
@@ -688,7 +688,7 @@ double JPsiKaon::GetLifetime(TLorentzVector b_p4, TVector3 production_vtx, TVect
 // ------------ method called once each job just before starting event loop  ------------
 
 void 
-JPsiKaon::beginJob()
+JPsiTrk::beginJob()
 {
 
   std::cout << "Beginning analyzer job with value of isMC= " << isMC_ << std::endl;
@@ -807,10 +807,10 @@ JPsiKaon::beginJob()
 
 
 // ------------ method called once each job just after ending the event loop  ------------
-void JPsiKaon::endJob() {
+void JPsiTrk::endJob() {
   tree_->GetDirectory()->cd();
   tree_->Write();
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(JPsiKaon);
+DEFINE_FWK_MODULE(JPsiTrk);
